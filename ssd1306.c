@@ -1,30 +1,34 @@
-/*
+/***********************************************************************************************************************
+ * ssd1306.c
+ * -- SSD1306 OLED driver for Intel QMSI
+ *
+ ***********************************************************************************************************************
+ *
+ * Copyright (c) 2017, Gerad Munsch <gmunsch@unforgivendevelopment.com>
  * Copyright (c) 2017, Sergey Kiselev
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ ***********************************************************************************************************************
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from this
- *    software without specific prior written permission.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+ * following conditions are met:
+ *
+ * 1.	Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ *		disclaimer.
+ * 2.	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+ *		following disclaimer in the documentation and/or other materials provided with the distribution.
+ * 3.	Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+ *		products derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ **********************************************************************************************************************/
 
 #include <clk.h>
 #include "ssd1306.h"
@@ -130,12 +134,11 @@ static uint8_t ssd1306_font[] = {
 	0x00, 0x00, 0x7F, 0x00, 0x00, 0x00,
 	0x00, 0x41, 0x36, 0x08, 0x00, 0x00,
 	0x00, 0x02, 0x01, 0x01, 0x02, 0x01,
-	0x00, 0x02, 0x05, 0x05, 0x02, 0x00, /* degree symbol */
+	0x00, 0x02, 0x05, 0x05, 0x02, 0x00,		/* degree symbol */
 };
 
 #if SSD1306_I2C == 1
-int ssd1306_write_cmd(uint8_t cmd)
-{
+int ssd1306_write_cmd(uint8_t cmd) {
 	const int len = 2;
 	uint8_t buf[len];
 	uint32_t ssd1306_i2c_addr = SSD1306_I2C_ADDR;
@@ -148,15 +151,19 @@ int ssd1306_write_cmd(uint8_t cmd)
 
 	for (retry_count = 0; retry_count < SSD1306_I2C_RETRY_COUNT; retry_count++) {
 		rc = qm_i2c_master_write(QM_I2C_0, ssd1306_i2c_addr, buf, len, true, &status);
-		if (0 == rc) break;
+		if (0 == rc) {
+			break;
+		}
 	}
-	if (rc)
+
+	if (rc) {
 		printf("ssd1306_write_byte() failed after %d retries. Error: %d\r\n", SSD1306_I2C_RETRY_COUNT, rc);
+	}
+
 	return rc;
 }
 
-int ssd1306_write_data(uint8_t data[], int len)
-{
+int ssd1306_write_data(uint8_t data[], int len) {
 	uint8_t mode = SSD1306_MODE_DATA;
 	uint32_t ssd1306_i2c_addr = SSD1306_I2C_ADDR;
 	int retry_count = SSD1306_I2C_RETRY_COUNT;
@@ -165,8 +172,11 @@ int ssd1306_write_data(uint8_t data[], int len)
 
 	for (retry_count = 0; retry_count < SSD1306_I2C_RETRY_COUNT; retry_count++) {
 		rc = qm_i2c_master_write(QM_I2C_0, ssd1306_i2c_addr, &mode, 1, false, &status);
-		if (0 == rc) break;
+		if (0 == rc) {
+			break;
+		}
 	}
+
 	if (rc) {
 		printf("ssd1306_write_data() failed after %d retries. Error: %d\r\n", SSD1306_I2C_RETRY_COUNT, rc);
 		return rc;
@@ -174,8 +184,11 @@ int ssd1306_write_data(uint8_t data[], int len)
 
 	for (retry_count = 0; retry_count < SSD1306_I2C_RETRY_COUNT; retry_count++) {
 		rc = qm_i2c_master_write(QM_I2C_0, ssd1306_i2c_addr, data, len, true, &status);
-		if (0 == rc) break;
+		if (0 == rc) {
+			break;
+		}
 	}
+
 	if (rc) {
 		printf("ssd1306_write_data() failed after %d retries. Error: %d\r\n", SSD1306_I2C_RETRY_COUNT, rc);
 		return rc;
@@ -183,9 +196,10 @@ int ssd1306_write_data(uint8_t data[], int len)
 
 	return rc;
 }
-#else
-uint8_t ssd1306_write_cmd(uint8_t cmd)
-{
+
+#else	/* (end) SSD1306_I2C == 1 | (begin) SSD1306_I2C == 0 */
+
+uint8_t ssd1306_write_cmd(uint8_t cmd) {
 	qm_spi_transfer_t spi_xfer;
 	qm_spi_status_t spi_status;
 	uint8_t out;
@@ -202,13 +216,15 @@ uint8_t ssd1306_write_cmd(uint8_t cmd)
 	return out;
 }
 
-uint8_t ssd1306_write_data(uint8_t data[], uint8_t len)
-{
+uint8_t ssd1306_write_data(uint8_t data[], uint8_t len) {
 	qm_spi_transfer_t spi_xfer;
 	qm_spi_status_t spi_status;
 	uint8_t out[8];
 
-	if (len > 8) len = 8; /* avoid buffer overflow */
+	/* avoid buffer overflow */
+	if (len > 8) {
+		len = 8;
+	}
 
 	spi_xfer.tx = data;
 	spi_xfer.tx_len = len;
@@ -218,62 +234,70 @@ uint8_t ssd1306_write_data(uint8_t data[], uint8_t len)
 	qm_gpio_set_pin(QM_GPIO_0, SSD1306_GPIO_DC);
 	qm_spi_slave_select(SSD1306_SPI_BUS, SSD1306_SPI_SS);
 	qm_spi_transfer(SSD1306_SPI_BUS, &spi_xfer, &spi_status);
+
 	/* Switch the D/C pin to LOW, so that the on-board LED turns off */
 	qm_gpio_clear_pin(QM_GPIO_0, SSD1306_GPIO_DC);
 
 	return 0;
 }
-#endif
+
+#endif	/* (end) SSD1306_I2C == 0 */
 
 int ssd1306_init() {
 	unsigned int i;
+
 	uint8_t init_cmd_sequence[] = {
-		SSD1306_CMD_DISPLAY_OFF,	/* switch display off */
-		SSD1306_CMD_SET_CLK_DIV,	/* set clock divisor */
+		SSD1306_CMD_DISPLAY_OFF,		/* switch display off */
+		SSD1306_CMD_SET_CLK_DIV,		/* set clock divisor */
 		0x80,
-		SSD1306_CMD_SET_MUX,		/* set mux ratio */
-		(SSD1306_LCD_HEIGHT-1),		/* 39 */
-		SSD1306_CMD_SET_OFFSET,		/* set display offset */
+		SSD1306_CMD_SET_MUX,			/* set mux ratio */
+		(SSD1306_LCD_HEIGHT-1),			/* 39 */
+		SSD1306_CMD_SET_OFFSET,			/* set display offset */
 		0x00,
-		SSD1306_CMD_SET_START_LINE,	/* set start line */
-		SSD1306_CMD_SET_CHARGEPUMP,	/* set charge pump */
-		0x14,				/* enable charge pump */
+		SSD1306_CMD_SET_START_LINE,		/* set start line */
+		SSD1306_CMD_SET_CHARGEPUMP,		/* set charge pump */
+		0x14,							/* enable charge pump */
 		SSD1306_CMD_SET_COM_SCAN_INC,	/* set COM scan direction */
-		SSD1306_CMD_SET_COM_PINS,	/* set COM pins configuratio */
+		SSD1306_CMD_SET_COM_PINS,		/* set COM pins configuratio */
 		0x12,
-		SSD1306_CMD_SET_CONTRAST,	/* set contrast */
+		SSD1306_CMD_SET_CONTRAST,		/* set contrast */
 		0xAF,
-		SSD1306_CMD_SET_PRECHARGE,	/* set pre-charge */
+		SSD1306_CMD_SET_PRECHARGE,		/* set pre-charge */
 		0x25,
 		SSD1306_CMD_SET_VCOM_DESELECT,	/* set VCOM deselect level */
 		0x20,
 		SSD1306_CMD_DISPLAY_ALL_ON_RES,	/* set entire display on */
-		SSD1306_CMD_NORMAL,		/* set normal display mode */
-		SSD1306_CMD_DISPLAY_ON		/* switch display on */
+		SSD1306_CMD_NORMAL,				/* set normal display mode */
+		SSD1306_CMD_DISPLAY_ON			/* switch display on */
 	};
 
 	/* reset SSD1306 */
 	qm_gpio_clear_pin(QM_GPIO_0, SSD1306_GPIO_RST);
-	/* MI9639BO-W datasheet recommends 100ms delay,
-     * which seems to be too high - 10ms works for me!
-     */
+
+	/*
+	 * MI9639BO-W datasheet recommends 100ms delay,
+	 * which seems to be too high - 10ms works for me!
+	 */
 	clk_sys_udelay(10000);		/* 10ms reset LOW delay */
 	qm_gpio_set_pin(QM_GPIO_0, SSD1306_GPIO_RST);
 	clk_sys_udelay(5);			/* 5us reset HIGH delay */
 
-	for (i = 0; i < sizeof(init_cmd_sequence); i++)
+	/* run initialization sequence (from array) */
+	for (i = 0; i < sizeof(init_cmd_sequence); i++) {
 		ssd1306_write_cmd(init_cmd_sequence[i]);
+	}
 
 	/* 0.1 seconds delay */
 	clk_sys_udelay(100000);
 
+	/* ensure screen is clear(ed) */
 	ssd1306_clear();
 
 	return 0;
 }
 
-int ssd1306_set_address(uint8_t x, uint8_t y)
-{
+
+int ssd1306_set_address(uint8_t x, uint8_t y) {
 	ssd1306_write_cmd(SSD1306_CMD_SET_COLUMN_ADDR);
 	ssd1306_write_cmd(x);
 	ssd1306_write_cmd(SSD1306_LCD_WIDTH - 1);
@@ -284,18 +308,25 @@ int ssd1306_set_address(uint8_t x, uint8_t y)
 	return 0;
 }
 
-int ssd1306_set_cursor(uint8_t row, uint8_t column)
-{
-	if (row > (SSD1306_LCD_HEIGHT / 8) - 1) return 1;
-	if (column > (SSD1306_LCD_WIDTH / 6) - 1) return 1;
+
+int ssd1306_set_cursor(uint8_t row, uint8_t column) {
+	if (row > (SSD1306_LCD_HEIGHT / 8) - 1) {
+		return 1;
+	}
+
+	if (column > (SSD1306_LCD_WIDTH / 6) - 1) {
+		return 1;
+	}
+
 	ssd1306_set_address(column * 6, row);
 
 	return 0;
 }
 
-int ssd1306_clear()
-{
-	uint8_t row, column, buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+int ssd1306_clear() {
+	uint8_t row;
+	uint8_t column;
+	uint8_t buffer[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	ssd1306_write_cmd(SSD1306_CMD_DISPLAY_OFF);
 
@@ -312,18 +343,22 @@ int ssd1306_clear()
 	return 0;
 }
 
-int ssd1306_putc(uint8_t c)
-{
-	if (c < 32 || c > 127) c = ' ';
+
+int ssd1306_putc(uint8_t c) {
+	/* Render any undefined characters as a space */
+	if (c < 32 || c > 127) {
+		c = ' ';
+	}
 
 	ssd1306_write_data(&ssd1306_font[((c - 32) * 6)], 6);
 
 	return 0;
 }
 
-int ssd1306_puts(char string[])
-{
+
+int ssd1306_puts(char string[]) {
 	int i = 0;
+
 	while (string[i] != '\0') {
 		ssd1306_putc(string[i]);
 		i++;
@@ -331,4 +366,3 @@ int ssd1306_puts(char string[])
 
 	return 0;
 }
-
