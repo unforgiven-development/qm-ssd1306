@@ -1,14 +1,11 @@
-/***********************************************************************************************************************
- * ssd1306.c
- * -- SSD1306 OLED driver for Intel QMSI
+/**
+ * \file ssd1306.c	Core driver functionality for the SSD1306 OLED driver for Intel QMSI
  *
- ***********************************************************************************************************************
+ * \author	Gerad Munsch <gmunsch@unforgivendevelopment.com>
+ * \author	Sergey Kiselev
+ * \date	2017
  *
- * Copyright (c) 2017, Gerad Munsch <gmunsch@unforgivendevelopment.com>
- * Copyright (c) 2017, Sergey Kiselev
- * All rights reserved.
- *
- ***********************************************************************************************************************
+ * \copyright All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
  * following conditions are met:
@@ -28,16 +25,20 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- **********************************************************************************************************************/
+ */
 
 #include <clk.h>
+
 #include "ssd1306.h"
+
 #include <qm_common.h>
 #include <qm_gpio.h>
 #include <qm_i2c.h>
 #include <qm_spi.h>
 
-/* 6x8 font */
+/**
+ * \var ssd1306_font[]	A static array defining a "generic" 6x8 font
+ */
 static uint8_t ssd1306_font[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x5F, 0x00, 0x00, 0x00,
@@ -137,6 +138,7 @@ static uint8_t ssd1306_font[] = {
 	0x00, 0x02, 0x05, 0x05, 0x02, 0x00,		/* degree symbol */
 };
 
+
 #if SSD1306_I2C == 1
 int ssd1306_write_cmd(uint8_t cmd) {
 	const int len = 2;
@@ -162,6 +164,7 @@ int ssd1306_write_cmd(uint8_t cmd) {
 
 	return rc;
 }
+
 
 int ssd1306_write_data(uint8_t data[], int len) {
 	uint8_t mode = SSD1306_MODE_DATA;
@@ -197,6 +200,7 @@ int ssd1306_write_data(uint8_t data[], int len) {
 	return rc;
 }
 
+
 #else	/* (end) SSD1306_I2C == 1 | (begin) SSD1306_I2C == 0 */
 
 uint8_t ssd1306_write_cmd(uint8_t cmd) {
@@ -204,9 +208,9 @@ uint8_t ssd1306_write_cmd(uint8_t cmd) {
 	qm_spi_status_t spi_status;
 	uint8_t out;
 
-	spi_xfer.tx = &cmd;
+	spi_xfer.tx     = &cmd;
 	spi_xfer.tx_len = 1;
-	spi_xfer.rx = &out;
+	spi_xfer.rx     = &out;
 	spi_xfer.rx_len = 1;
 
 	qm_gpio_clear_pin(QM_GPIO_0, SSD1306_GPIO_DC);
@@ -215,6 +219,7 @@ uint8_t ssd1306_write_cmd(uint8_t cmd) {
 
 	return out;
 }
+
 
 uint8_t ssd1306_write_data(uint8_t data[], uint8_t len) {
 	qm_spi_transfer_t spi_xfer;
@@ -226,9 +231,9 @@ uint8_t ssd1306_write_data(uint8_t data[], uint8_t len) {
 		len = 8;
 	}
 
-	spi_xfer.tx = data;
+	spi_xfer.tx     = data;
 	spi_xfer.tx_len = len;
-	spi_xfer.rx = out;
+	spi_xfer.rx     = out;
 	spi_xfer.rx_len = len;
 
 	qm_gpio_set_pin(QM_GPIO_0, SSD1306_GPIO_DC);
@@ -240,54 +245,53 @@ uint8_t ssd1306_write_data(uint8_t data[], uint8_t len) {
 
 	return 0;
 }
-
 #endif	/* (end) SSD1306_I2C == 0 */
+
 
 int ssd1306_init() {
 	unsigned int i;
 
 	uint8_t init_cmd_sequence[] = {
-		SSD1306_CMD_DISPLAY_OFF,		/* switch display off */
-		SSD1306_CMD_SET_CLK_DIV,		/* set clock divisor */
+		SSD1306_CMD_DISPLAY_OFF,			/* switch display off */
+		SSD1306_CMD_SET_CLK_DIV,			/* set clock divisor */
 		0x80,
-		SSD1306_CMD_SET_MUX,			/* set mux ratio */
-		(SSD1306_LCD_HEIGHT-1),			/* 39 */
-		SSD1306_CMD_SET_OFFSET,			/* set display offset */
+		SSD1306_CMD_SET_MUX,				/* set mux ratio */
+		(SSD1306_LCD_HEIGHT-1),				/* 39 */
+		SSD1306_CMD_SET_OFFSET,				/* set display offset */
 		0x00,
-		SSD1306_CMD_SET_START_LINE,		/* set start line */
-		SSD1306_CMD_SET_CHARGEPUMP,		/* set charge pump */
-		0x14,							/* enable charge pump */
-		SSD1306_CMD_SET_COM_SCAN_INC,	/* set COM scan direction */
-		SSD1306_CMD_SET_COM_PINS,		/* set COM pins configuratio */
+		SSD1306_CMD_SET_START_LINE,			/* set start line */
+		SSD1306_CMD_SET_CHARGEPUMP,			/* set charge pump */
+		0x14,								/* enable charge pump */
+		SSD1306_CMD_SET_COM_SCAN_INC,		/* set COM scan direction */
+		SSD1306_CMD_SET_COM_PINS,			/* set COM pins configuratio */
 		0x12,
-		SSD1306_CMD_SET_CONTRAST,		/* set contrast */
+		SSD1306_CMD_SET_CONTRAST,			/* set contrast */
 		0xAF,
-		SSD1306_CMD_SET_PRECHARGE,		/* set pre-charge */
+		SSD1306_CMD_SET_PRECHARGE,			/* set pre-charge */
 		0x25,
-		SSD1306_CMD_SET_VCOM_DESELECT,	/* set VCOM deselect level */
+		SSD1306_CMD_SET_VCOM_DESELECT,		/* set VCOM deselect level */
 		0x20,
-		SSD1306_CMD_DISPLAY_ALL_ON_RES,	/* set entire display on */
-		SSD1306_CMD_NORMAL,				/* set normal display mode */
-		SSD1306_CMD_DISPLAY_ON			/* switch display on */
+		SSD1306_CMD_DISPLAY_ALL_ON_RES,		/* set entire display on */
+		SSD1306_CMD_NORMAL,					/* set normal display mode */
+		SSD1306_CMD_DISPLAY_ON				/* switch display on */
 	};
 
 	/* reset SSD1306 */
 	qm_gpio_clear_pin(QM_GPIO_0, SSD1306_GPIO_RST);
 
 	/*
-	 * MI9639BO-W datasheet recommends 100ms delay,
-	 * which seems to be too high - 10ms works for me!
+	 * MI9639BO-W datasheet recommends 100ms delay, which seems to be too high - 10ms should generally work
 	 */
-	clk_sys_udelay(10000);		/* 10ms reset LOW delay */
+	clk_sys_udelay(10000);					/* 10ms reset LOW delay */
 	qm_gpio_set_pin(QM_GPIO_0, SSD1306_GPIO_RST);
-	clk_sys_udelay(5);			/* 5us reset HIGH delay */
+	clk_sys_udelay(5);						/* 5us reset HIGH delay */
 
 	/* run initialization sequence (from array) */
 	for (i = 0; i < sizeof(init_cmd_sequence); i++) {
 		ssd1306_write_cmd(init_cmd_sequence[i]);
 	}
 
-	/* 0.1 seconds delay */
+	/* 0.1 second (100ms) delay */
 	clk_sys_udelay(100000);
 
 	/* ensure screen is clear(ed) */
@@ -301,6 +305,7 @@ int ssd1306_set_address(uint8_t x, uint8_t y) {
 	ssd1306_write_cmd(SSD1306_CMD_SET_COLUMN_ADDR);
 	ssd1306_write_cmd(x);
 	ssd1306_write_cmd(SSD1306_LCD_WIDTH - 1);
+
 	ssd1306_write_cmd(SSD1306_CMD_SET_PAGE_ADDR);
 	ssd1306_write_cmd(y);
 	ssd1306_write_cmd((SSD1306_LCD_HEIGHT / 8) - 1);
@@ -328,16 +333,21 @@ int ssd1306_clear() {
 	uint8_t column;
 	uint8_t buffer[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
+	/* Turn the display off while we're clearing it... */
 	ssd1306_write_cmd(SSD1306_CMD_DISPLAY_OFF);
 
+	/*
+	 * Clear the display.
+	 * This writes "blank" 8x8 blocks of pixels to the display, until the entire display has been cleared.
+	 */
 	for (row = 0; row < SSD1306_LCD_HEIGHT / 8; row++) {
 		ssd1306_set_address(0, row);
 		for (column = 0; column < SSD1306_LCD_WIDTH; column += 8) {
-			/* Clear the display - 8x8 pixels at the time */
 			ssd1306_write_data(buffer, 8);
 		}
 	}
 
+	/* ...and turn it back on now that we're done */
 	ssd1306_write_cmd(SSD1306_CMD_DISPLAY_ON);
 
 	return 0;
@@ -345,7 +355,7 @@ int ssd1306_clear() {
 
 
 int ssd1306_putc(uint8_t c) {
-	/* Render any undefined characters as a space */
+	/* If the desired character lacks a definition, write a [SPACE] character in its place. */
 	if (c < 32 || c > 127) {
 		c = ' ';
 	}
@@ -359,6 +369,11 @@ int ssd1306_putc(uint8_t c) {
 int ssd1306_puts(char string[]) {
 	int i = 0;
 
+	/*
+	 * Write a standard 'NULL-terminated' string to the display.
+	 * Perform this operation by writing each character in the array to the display, until a NULL (0x00) character is
+	 * reached, at which point the string is considered to be terminated.
+	 */
 	while (string[i] != '\0') {
 		ssd1306_putc(string[i]);
 		i++;

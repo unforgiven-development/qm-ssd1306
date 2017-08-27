@@ -1,14 +1,11 @@
-/***********************************************************************************************************************
- * ssd1306.h
- * -- SSD1306 OLED driver for Intel QMSI
+/**
+ * \file ssd1306.h	Header file for the SSD1306 OLED driver for Intel QMSI
  *
- ***********************************************************************************************************************
+ * \author	Gerad Munsch <gmunsch@unforgivendevelopment.com>
+ * \author	Sergey Kiselev
+ * \date	2017
  *
- * Copyright (c) 2017, Gerad Munsch <gmunsch@unforgivendevelopment.com>
- * Copyright (c) 2017, Sergey Kiselev
- * All rights reserved.
- *
- ***********************************************************************************************************************
+ * \copyright All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
  * following conditions are met:
@@ -28,93 +25,100 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- **********************************************************************************************************************/
+ */
 
 /**
  * SSD1306 interface type
  *
- * SSD1306_I2C == 1 - use I2C
- * SSD1306_I2C == 0 - use SPI
+ * \def SSD1306_I2C	Define this as \p 1 for an I2C display, or as \p 0 for an SPI display.
  */
 #define SSD1306_I2C						0
 
 
 /**
- * Display resolution: modify according to the specific display being used. Some examples are included below.
+ * Display resolution
+ * \note Modify according to the specific display being used. Some examples are included below.
  *
- * Adafruit 1.3" OLED: 128 WIDTH x 64 HEIGHT
- * MikroElektronika OLED Click: 96 WIDTH x 39 HEIGHT (defined as 40)
+ * \li <B>Adafruit 1.3" OLED:</B> \p 128 WIDTH x \p 64 HEIGHT
+ * \li <B>MikroElektronika OLED Click:</B> \p 96 WIDTH x \p 39 HEIGHT (defined as \p 40)
+ * \li <B>Generic 0.96" OLED displays from Amazon, etc:</B> Typically \p 128 WIDTH x \p 64 HEIGHT
+ * \li <B>Additional common display resolution:</B> \p 128 WIDTH x \p 32 HEIGHT
  *
- * Also common: 128 WIDTH x 32 HEIGHT
+ * \def SSD1306_LCD_WIDTH	Define the width of the display, in pixels.
+ * \def SSD1306_LCD_HEIGHT	Define the height of the display, in pixels.
  */
 #define SSD1306_LCD_WIDTH				128
 #define SSD1306_LCD_HEIGHT				64
 
 
 /**
- * I2C settings:
+ * I2C settings
+ * \note Typical I2C addresses for SSD1306 OLED displays are \c 0x3C or \c 0x3D
  *
- * I2C address: typical values are 0x3C or 0x3D
- * I2C retry count: default value = 5
+ * \def SSD1306_I2C_ADDR		Define the I2C address of the SSD1306 display
+ * \def SSD1306_I2C_RETRY_COUNT	Define the amount of times an I2C transaction will be retried (DEFAULT: \p 5)
  */
 #define SSD1306_I2C_ADDR				0x3C
 #define SSD1306_I2C_RETRY_COUNT			5
 
 
 /**
- * SPI settings:
+ * SPI settings
  *
- * SPI bus: define which SPI bus to use
- * SPI SS: define the SPI slave select pin to use
+ * \def SSD1306_SPI_BUS	Define which SPI bus to use
+ * \def SSD1306_SPI_SS	Define the SPI slave select pin to use
  */
 #define SSD1306_SPI_BUS					QM_SPI_MST_0
 #define SSD1306_SPI_SS					QM_SPI_SS_0
 
 
 /**
- * GPIO settings (if required):
+ * GPIO settings (if required)
+ * \note These pins are only found on a limited amount of devices.
  *
- * NOTE: These pins are only found on a limited amount of devices.
- *
- * RESET pin: define which GPIO to use for the SSD1306 "RESET" function
- * DC pin: define which GPIO to use for the SSD1306 "DC" (data/command register select) function
+ * \def SSD1306_GPIO_RST	Define which GPIO to use for the SSD1306 "RESET" function.
+ *							DEFAULT: D2000 - GPIO 9 (CRB Pin #8)
+ * \def SSD1306_GPIO_DC		Define which GPIO to use for the SSD1306 "DC" (data/command register select) function.
+ *							DEFAULT: D2000 - GPIO 24 (CRB Pin #9)
  */
-#define SSD1306_GPIO_RST				9	/* D2000 - F9	| D2000 CRB pin #8 */
-#define SSD1306_GPIO_DC					24	/* D2000 - F24	| D2000 CRB pin #9 */
+#define SSD1306_GPIO_RST				9
+#define SSD1306_GPIO_DC					24
 
 
 /**
  * Set command/data mode
+ * \brief Define the opcodes to set the device into \b command or \b data mode
  */
-#define SSD1306_MODE_CMD				0x80
-#define SSD1306_MODE_DATA				0x40
+#define SSD1306_MODE_CMD				0x80	/*!< The opcode to set the device into \b command mode */
+#define SSD1306_MODE_DATA				0x40	/*!< The opcode to set the device into \b data mode */
 
 
 /**
  * Define SSD1306 commands
+ * \brief Define the opcodes for a variety of the SSD1306 device commands.
  */
-#define SSD1306_CMD_ADDR_MODE			0x20
-#define SSD1306_CMD_SET_COLUMN_ADDR		0x21
-#define SSD1306_CMD_SET_PAGE_ADDR		0x22
-#define SSD1306_CMD_SET_START_LINE		0x40
-#define SSD1306_CMD_SET_CONTRAST		0x81
-#define SSD1306_CMD_SET_CHARGEPUMP		0x8D
-#define SSD1306_CMD_SET_SEGMENT_REMAP	0xA1
-#define SSD1306_CMD_DISPLAY_ALL_ON_RES	0xA4
-#define SSD1306_CMD_NORMAL				0xA6
-#define SSD1306_CMD_SET_MUX				0xA8
-#define SSD1306_CMD_DISPLAY_OFF			0xAE
-#define SSD1306_CMD_DISPLAY_ON			0xAF
-#define SSD1306_CMD_SET_COM_SCAN_INC	0xC0
-#define SSD1306_CMD_SET_COM_SCAN_DEC	0xC8
-#define SSD1306_CMD_SET_OFFSET			0xD3
-#define SSD1306_CMD_SET_CLK_DIV			0xD5
-#define SSD1306_CMD_SET_PRECHARGE		0xD9
-#define SSD1306_CMD_SET_COM_PINS		0xDA
-#define SSD1306_CMD_SET_VCOM_DESELECT	0xDB
-#define SSD1306_CMD_PAGE_START_ADDR		0xB0
-#define SSD1306_CMD_COLUMN_LOW_ADDR		0x00
-#define SSD1306_CMD_COLUMN_HIGH_ADDR	0x10
+#define SSD1306_CMD_ADDR_MODE			0x20	/*!< The opcode for settings the memory addressing mode  */
+#define SSD1306_CMD_SET_COLUMN_ADDR		0x21	/*!< The opcode  */
+#define SSD1306_CMD_SET_PAGE_ADDR		0x22	/*!< The opcode  */
+#define SSD1306_CMD_SET_START_LINE		0x40	/*!< The opcode  */
+#define SSD1306_CMD_SET_CONTRAST		0x81	/*!< The opcode  */
+#define SSD1306_CMD_SET_CHARGEPUMP		0x8D	/*!< The opcode  */
+#define SSD1306_CMD_SET_SEGMENT_REMAP	0xA1	/*!< The opcode  */
+#define SSD1306_CMD_DISPLAY_ALL_ON_RES	0xA4	/*!< The opcode  */
+#define SSD1306_CMD_NORMAL				0xA6	/*!< The opcode  */
+#define SSD1306_CMD_SET_MUX				0xA8	/*!< The opcode  */
+#define SSD1306_CMD_DISPLAY_OFF			0xAE	/*!< The opcode  */
+#define SSD1306_CMD_DISPLAY_ON			0xAF	/*!< The opcode  */
+#define SSD1306_CMD_SET_COM_SCAN_INC	0xC0	/*!< The opcode  */
+#define SSD1306_CMD_SET_COM_SCAN_DEC	0xC8	/*!< The opcode  */
+#define SSD1306_CMD_SET_OFFSET			0xD3	/*!< The opcode  */
+#define SSD1306_CMD_SET_CLK_DIV			0xD5	/*!< The opcode  */
+#define SSD1306_CMD_SET_PRECHARGE		0xD9	/*!< The opcode  */
+#define SSD1306_CMD_SET_COM_PINS		0xDA	/*!< The opcode  */
+#define SSD1306_CMD_SET_VCOM_DESELECT	0xDB	/*!< The opcode  */
+#define SSD1306_CMD_PAGE_START_ADDR		0xB0	/*!< The opcode  */
+#define SSD1306_CMD_COLUMN_LOW_ADDR		0x00	/*!< The opcode  */
+#define SSD1306_CMD_COLUMN_HIGH_ADDR	0x10	/*!< The opcode  */
 
 
 /**

@@ -109,8 +109,8 @@ void setup() {
 	/* Configure SPI chip selects - not really needed since we use GPIOs */
 	qm_spi_slave_select(SPI_BUS, SSD1306_SPI_SS);
 }
-
 #endif	/* (end) SSD1306_I2C == 0 */
+
 
 int main() {
 	int row;
@@ -126,29 +126,33 @@ int main() {
 
 	/* Configure Quark I/O */
 	setup();
-
 	ssd1306_init();
 	QM_PRINTF("SSD1306: Display initialized\r\n");
-
 	ssd1306_clear();
+
 
 	/* Fill the display with digits */
 	for (row = 0; row < SSD1306_LCD_HEIGHT / 8; row++) {
 		ssd1306_set_cursor(row, 0);
 		for (column = 0; column < SSD1306_LCD_WIDTH / 6; column++) {
-			ssd1306_putc('0' + (column + row ) % 10);
+			ssd1306_putc('0' + (column + row) % 10);
 		}
 	}
 
+
 	/* Position the text on the middle of the display */
-	row = ((SSD1306_LCD_HEIGHT / 8) - 4) / 2;
-	column = ((SSD1306_LCD_WIDTH / 6) - 10) / 2;
-	ssd1306_set_cursor(row, column);
+	row    = ((SSD1306_LCD_HEIGHT / 8) -  4) / 2;
+	column = ((SSD1306_LCD_WIDTH  / 6) - 10) / 2;
+
+	ssd1306_set_cursor(row,     column);
 	ssd1306_puts("  SSD1306 ");
+
 	ssd1306_set_cursor(row + 1, column);
 	ssd1306_puts("   OLED   ");
+
 	ssd1306_set_cursor(row + 2, column);
 	ssd1306_puts("  Display ");
+
 	ssd1306_set_cursor(row + 3, column);
 	ssd1306_puts("  Sample  ");
 
